@@ -1,3 +1,4 @@
+
 from accident_severity.config.configuration import ConfigurationManager
 from accident_severity.components.data_ingestion import DataIngestion
 from accident_severity.logging import logger

@@ -1,9 +1,10 @@
+
 import os, sys 
 import urllib.request as request 
 import zipfile
+from pathlib import Path
 from accident_severity.logging import logger
 from accident_severity.utils.common import get_size
-from pathlib import Path
 from accident_severity.entity.config_entity import DataIngestionConfig
 
 class DataIngestion:
