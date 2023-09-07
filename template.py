@@ -22,6 +22,7 @@ list_of_files = [
     "config/config.yaml",
     "params.yaml",
     "schema.yaml",
+    "final_model/demo.joblib",
     "app.py",
     "main.py",
     "Dockerfile",

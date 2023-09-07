@@ -18,3 +18,11 @@ model_trainer:
   train_data_path: artifacts/data_transformation/train_resampled.csv
   test_data_path: artifacts/data_transformation/test.csv
   model_name: rta_model.joblib
+
+
+model_evaluation:
+  root_dir: artifacts/model_evaluation
+  test_data_path: artifacts/data_transformation/test.csv
+  model_path: artifacts/model_trainer/rta_model.joblib
+  metric_file_name: artifacts/model_evaluation/model_metrics.json
+  model_name: artifacts/model_trainer/rta_model.joblib
