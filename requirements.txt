@@ -8,6 +8,7 @@ ipykernel
 notebook
 dill
 flask
+imblearn
 six
 plotly
 pycaret

@@ -1,5 +1,5 @@
-
 import os, sys 
+from pathlib import Path
 import pandas as pd 
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler, OrdinalEncoder, RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from accident_severity.logging import logger
+from imblearn.over_sampling import SMOTE
 import warnings
 warnings.filterwarnings("ignore")
 from accident_severity.entity.config_entity import DataTransformationConfig
@@ -122,6 +123,28 @@ class DataTransformation:
 
         except Exception as e:
             raise e
+
+    def handle_data_imbalance(self):
+        if self.transformed_df is None:
+            raise ValueError("Data transformation is not available. Please call get_data_transformation.")
+
+        # Split the data into train and test sets
+        train, test = train_test_split(self.transformed_df)
+
+        # Separate features and target in the train set
+        X_train = train.drop(columns=["accident_severity"])
+        y_train = train["accident_severity"]
+
+        # Handle data imbalance using SMOTE
+        smote = SMOTE(sampling_strategy='auto', random_state=42)
+        X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+        # Save the resampled train set in a CSV file
+        train_resampled = pd.DataFrame(X_train_resampled, columns=X_train.columns)
+        train_resampled["accident_severity"] = y_train_resampled
+        train_resampled.to_csv(os.path.join(self.config.root_dir, "train_resampled.csv"), index=False)
+
+        logger.info("Handling data imbalance using SMOTE completed")
         
     
     def train_test_split(self):

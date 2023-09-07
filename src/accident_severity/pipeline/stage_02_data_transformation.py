@@ -14,6 +14,7 @@ class DataTransformationTrainingPipeline:
         data_transformation_config = config.get_data_transformation_config()
         data_transformation = DataTransformation(config=data_transformation_config)
         data_transformation.get_data_transformation()
+        data_transformation.handle_data_imbalance()
         data_transformation.train_test_split()
 
 
