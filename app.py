@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import warnings
+from PIL import Image
 warnings.filterwarnings("ignore")
 
 
@@ -13,10 +14,15 @@ model = joblib.load("final_model/rta_model.joblib")
 # Load the preprocessor
 preprocessor = joblib.load("final_model/preprocessor.joblib")
 
+
+
 # Define the main function
 def main():
     # Set page title and layout
     st.set_page_config(page_title="Accident Severity Prediction App", layout="wide")
+
+    
+
     st.title("Accident Severity Prediction App")
 
     # Define dropdown options
@@ -85,9 +91,13 @@ def main():
         # Make the prediction
         prediction = model.predict(input_data)
 
+        # Map the prediction to human-readable labels
+        severity_mapping = {0: 'Slight Injury', 1: 'Serious Injury', 2: 'Fatal Injury'}
+        predicted_severity = severity_mapping.get(prediction[0], 'Unknown')
+
         # Show the prediction
         st.subheader("Prediction:")
-        st.write("The predicted severity of the accident is:", prediction[0])
+        st.write("The predicted severity of the accident is:", predicted_severity)
 
 # Run the main function
 if __name__ == '__main__':
