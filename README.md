@@ -1,6 +1,6 @@
 # Road Accident Severity Prediction
 
-[Find the app here](https://road-safety-prediction-app.onrender.com)
+[Find the webapp here](https://road-safety-prediction-app.onrender.com)
 
 ## Webapp Screenshorts
 
@@ -20,7 +20,7 @@ The target feature is `Accident_severity`` which is a multi-class variable. The 
 
 ## Data Source 
 
-[Dataset Source](https://dans.knaw.nl/nl/data-diensten/narcis/)
+[Click here to check the data source](https://dans.knaw.nl/nl/data-diensten/narcis/)
 
 ## Tech Stack Used:
 * Python
@@ -28,3 +28,16 @@ The target feature is `Accident_severity`` which is a multi-class variable. The 
 * Streamlit
   
 * Render
+
+## How to Setup in local
+
+* Fork the repo `https://github.com/gbiamgaurav/road_accident_severity.git`
+
+* install the dependencies `pip install -r requirements.txt`
+
+* run the main.py `python main.py`
+
+* run app.py `streamlit run app.py`
+
+
+
