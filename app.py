@@ -1,74 +1,69 @@
 
-import os
 import streamlit as st
 import pandas as pd
-from data_transformation import DataTransformation, DataTransformationConfig  # Import your data transformation classes
-from sklearn.model_selection import train_test_split
-from accident_severity.pipeline.predictions import PredictionPipeline
+import numpy as np
+import joblib
+import warnings
+warnings.filterwarnings("ignore")
 
-# Create a Streamlit web app
-st.title('Road Accident Severity Prediction App')
-st.write('Choose how you want to input data for accident severity prediction.')
 
-# Radio button to choose input method
-input_method = st.radio("Select Input Method:", ("Upload CSV File", "Enter Data Manually"))
+# Load the model
+model = joblib.load("final_model/rta_model.joblib")
 
-if input_method == "Upload CSV File":
-    # File Upload
-    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+# Load the preprocessor
+preprocessor = joblib.load("final_model/preprocessor.joblib")
 
-    if uploaded_file is not None:
-        # Configuration for data transformation
-        data_transformation_config = DataTransformationConfig(data_path=uploaded_file, root_dir='output')
+# Define the main function
+def main():
+    # Set page title and layout
+    st.set_page_config(page_title="Accident Severity Prediction App", layout="wide")
+    st.title("Accident Severity Prediction App")
 
-        # Create an instance of DataTransformation
-        data_transformer = DataTransformation(data_transformation_config)
+    # Define dropdown options
+    driver_age_options = ['18-30', '31-50', 'Over 51', 'Unknown', 'Under 18']
+    vehicle_owner_options = ['Owner', 'Governmental', 'Organization', 'Other']
+    vehicle_defect_options = ['No defect', '7', '5']
+    accident_area_options = ['Other', 'Office areas', 'Residential areas', 'Church areas',
+                             'Industrial areas', 'School areas', 'Recreational areas',
+                             'Outside rural areas', 'Hospital areas', 'Market areas', 'Rural village areas',
+                             'Unknown', 'Rural village areas', 'Office areas', 'Recreational areas']
+    
+    lanes_options = ['Two-way', 'Undivided Two way', 'other', 'Double carriageway', 'One way', 'Two-way', 'Unknown']
+    surface_type_options = ['Asphalt roads', 'Earth roads', 'Gravel roads', 'Other', 'Asphalt roads with some distress']
+    light_condition_options = ['Daylight', 'Darkness - lights lit', 'Darkness - no lighting', 'Darkness - lights unlit']
+    casualty_sex_options = ['Male', 'na', 'Female']
+    casualty_work_options = ['Driver', 'Self-employed', 'Employee', 'Other', 'Student', 'Unemployed', 'Unknown']
+    pedestrian_movement_options = ["Not a Pedestrian", 
+                                    "Crossing from nearside - masked by parked or stationary vehicle", 
+                                    "Unknown or other",  
+                                    "Crossing from driver's nearside", 
+                                    "Crossing from offside - masked by parked or stationary vehicle", 
+                                    "In carriageway, stationary - not crossing  (standing or playing)", 
+                                    "Walking along in carriageway, back to traffic", 
+                                    "In carriageway, stationary - not crossing  (standing or playing) - masked by parked or stationary vehicle",
+                                    "Walking along in carriageway, facing traffic"]
 
-        # Button to trigger data transformation
-        if st.button('Transform Data'):
-            # Perform data transformation
-            try:
-                data_transformer.get_data_transformation()
-                data_transformer.handle_data_imbalance()
-                data_transformer.train_test_split()
-                st.success('Data transformation completed successfully.')
+    # Define the form
+    with st.form("accident_severity_form"):
+        # Add form inputs
+        st.subheader("Please enter the following inputs:")
+        driver_age = st.selectbox("Driver's Age", options=driver_age_options)
+        vehicle_owner = st.selectbox("Vehicle Owner", options=vehicle_owner_options)
+        vehicle_defect = st.selectbox("Vehicle Defect", options=vehicle_defect_options)
+        accident_area = st.selectbox("Accident Areaa", options=accident_area_options)
+        lanes = st.selectbox("Lanes", options=lanes_options)
+        surface_type = st.selectbox("Surface Type", options=surface_type_options)
+        light_condition = st.selectbox("Light Conditions", options=light_condition_options)
+        casualty_sex = st.selectbox("Casualty Sex", options=casualty_sex_options)
+        casualty_work = st.selectbox("Casualty Work", options=casualty_work_options)
+        pedestrian_movement = st.selectbox("Pedestrian Movement", options=pedestrian_movement_options)
 
-                # Display a button to download transformed data
-                if st.button('Download Transformed Data'):
-                    st.write('Download the transformed data:')
-                    st.markdown(data_transformer.config.root_dir + "/train_resampled.csv")
+        # Add submit button
+        submit_button = st.form_submit_button(label='Predict')
 
-            except Exception as e:
-                st.error(f'Data transformation failed: {str(e)}')
-
-        # Show a sample of the uploaded data
-        if uploaded_file is not None:
-            st.subheader('Sample of the Uploaded Data')
-            df = pd.read_csv(uploaded_file)
-            selected_features = ['driver_age', 'vehicle_owner', 'vehicle_defect', 'accident_area',
-                                 'lanes', 'surface_type', 'light_condition', 'casualty_sex',
-                                 'casualty_work', 'pedestrian_movement']
-            st.write(df[selected_features].head())
-
-elif input_method == "Enter Data Manually":
-    st.subheader('Enter Data Manually:')
-
-    # Create input fields for selected features
-    driver_age = st.slider('Driver Age', min_value=0, max_value=100, step=1)
-    vehicle_owner = st.selectbox('Vehicle Owner', ['Private', 'Commercial'])
-    vehicle_defect = st.selectbox('Vehicle Defect', ['Yes', 'No'])
-    accident_area = st.text_input('Accident Area')
-    lanes = st.selectbox('Lanes', ['1', '2', '3+'])
-    surface_type = st.selectbox('Surface Type', ['Dry', 'Wet', 'Ice', 'Snow', 'Other'])
-    light_condition = st.selectbox('Light Condition', ['Daylight', 'Dark (No Street Lights)',
-                                                       'Dark (Street Lights)', 'Dusk', 'Dawn'])
-    casualty_sex = st.selectbox('Casualty Sex', ['Male', 'Female'])
-    casualty_work = st.selectbox('Casualty Work', ['Employed', 'Unemployed', 'Student', 'Other'])
-    pedestrian_movement = st.selectbox('Pedestrian Movement', ['Crossing Road', 'Not Crossing Road', 'Other'])
-
-    # Create a button to trigger prediction
-    if st.button('Predict Accident Severity'):
-        # Create a DataFrame from the manually entered data
+    # If submit button is clicked
+    if submit_button:
+        # Create a DataFrame with the selected input features
         input_data = pd.DataFrame({
             'driver_age': [driver_age],
             'vehicle_owner': [vehicle_owner],
@@ -82,14 +77,18 @@ elif input_method == "Enter Data Manually":
             'pedestrian_movement': [pedestrian_movement]
         })
 
-        # You can use the input_data for prediction
-        # Replace this with your actual prediction logic
-        prediction = "Slight Injury"  # Placeholder, replace with actual prediction
+        # Encode categorical features
+        categorical_cols = input_data.select_dtypes(include=['object']).columns
+        for col in categorical_cols:
+            input_data[col] = input_data[col].astype('category').cat.codes
 
-        st.subheader('Prediction:')
-        st.write('Predicted Accident Severity:', prediction)
+        # Make the prediction
+        prediction = model.predict(input_data)
 
-# Additional features can be added for model training and prediction if needed
+        # Show the prediction
+        st.subheader("Prediction:")
+        st.write("The predicted severity of the accident is:", prediction[0])
 
-
-
+# Run the main function
+if __name__ == '__main__':
+    main()

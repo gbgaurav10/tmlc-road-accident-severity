@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 from sklearn.pipeline import Pipeline
@@ -10,7 +11,6 @@ from imblearn.over_sampling import SMOTE
 import joblib
 import warnings
 warnings.filterwarnings("ignore")
-from accident_severity.entity.config_entity import DataTransformationConfig
 
 class DataTransformation:
     def __init__(self, config):
@@ -63,6 +63,23 @@ class DataTransformation:
 
             # Drop some columns
             df.drop(columns=["time"], axis=1, inplace=True)
+
+            # Feature Selection 
+            selected_columns = ['driver_age',
+                               'vehicle_owner',
+                                'vehicle_defect',
+                               'accident_area',
+                                'lanes',
+                                'surface_type',
+                                'light_condition',
+                                'casualty_sex',
+                                'casualty_work',
+                                'pedestrian_movement',
+                                'accident_severity']
+
+
+            # Drop columns that are not in selected_columns
+            df = df[selected_columns]
 
             # Define the target_variable
             X = df.drop(columns=["accident_severity"], axis=1)
