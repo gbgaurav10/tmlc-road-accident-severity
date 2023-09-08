@@ -21,3 +21,9 @@ The target feature is `Accident_severity`` which is a multi-class variable. The 
 ## Data Source 
 
 [Dataset Source](https://dans.knaw.nl/nl/data-diensten/narcis/)
+
+## Tech Stack Used:
+
+Python
+Streamlit
+Render
