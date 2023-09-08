@@ -4,6 +4,9 @@
 
 ## Webapp Screenshorts
 
+![screenshot](https://github.com/gbiamgaurav/tmlc-road-accident-severity/assets/81230208/90bc9814-46ca-411e-9118-4b29409d382e)
+
+![screenshot](https://github.com/gbiamgaurav/tmlc-road-accident-severity/assets/81230208/81d142bb-aafd-4926-a283-b1f159045ef2)
 
 
 ## Dataset Description:
