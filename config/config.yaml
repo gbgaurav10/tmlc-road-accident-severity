@@ -11,6 +11,7 @@ data_ingestion:
 data_transformation:
   root_dir: artifacts/data_transformation
   data_path: artifacts/data_ingestion/RTA Dataset.csv
+  preprocessor_path: artifacts/data_transformation/preprocessor.joblib
 
 
 model_trainer:

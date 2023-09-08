@@ -1,28 +1,25 @@
-import os, sys 
-from pathlib import Path
-import pandas as pd 
+import os
+import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder, RobustScaler
+from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from accident_severity.logging import logger
 from imblearn.over_sampling import SMOTE
+import joblib
 import warnings
 warnings.filterwarnings("ignore")
 from accident_severity.entity.config_entity import DataTransformationConfig
 
-
 class DataTransformation:
-    def __init__(self, config: DataTransformationConfig):
+    def __init__(self, config):
         self.config = config
-        self.preprocessor = None 
-        self.transformed_df = None 
-
+        self.preprocessor = None
+        self.transformed_df = None
 
     def get_data_transformation(self):
         try:
-
             # Load the dataset
             df = pd.read_csv(self.config.data_path)
 
@@ -61,22 +58,20 @@ class DataTransformation:
                 'Cause_of_accident': 'accident_cause',
                 'Accident_severity': 'accident_severity'
             }
+
             df.rename(columns=col_map, inplace=True)
 
-            # drop some columns
-            df.drop(columns=["time"], axis=1, inplace=True) 
+            # Drop some columns
+            df.drop(columns=["time"], axis=1, inplace=True)
 
             # Define the target_variable
             X = df.drop(columns=["accident_severity"], axis=1)
             y = df["accident_severity"]
 
-            # Map the target variable mannually
-            y.replace({'Slight Injury': 0,
-               'Serious Injury': 1,
-               'Fatal injury': 2}, inplace=True)
-            
-            # Define numerical and categorical features
+            # Map the target variable manually
+            y.replace({'Slight Injury': 0, 'Serious Injury': 1, 'Fatal injury': 2}, inplace=True)
 
+            # Define numerical and categorical features
             numerical_features = X.select_dtypes(exclude="object").columns
             categorical_features = X.select_dtypes(include="object").columns
 
@@ -99,15 +94,14 @@ class DataTransformation:
             logger.info(f"Categorical columns: {categorical_features}")
 
             # Define the Preprocessor
-
             preprocessor = ColumnTransformer(
                 transformers=[
-                    ("mum_pipeline", num_pipeline, numerical_features),
+                    ("num_pipeline", num_pipeline, numerical_features),
                     ("cat_pipeline", cat_pipeline, categorical_features)
                 ]
             )
 
-            self.preprocessor = preprocessor # Store the preprocessor for later usage
+            self.preprocessor = preprocessor  # Store the preprocessor for later usage
 
             # Transform the whole data using the preprocessor
             X_transformed = preprocessor.fit_transform(X)
@@ -117,9 +111,9 @@ class DataTransformation:
 
             # Combine X_transformed and y back into one Dataframe
             self.transformed_df = pd.DataFrame(X_transformed, columns=column_names)
-            self.transformed_df["accident_severity"] = y 
+            self.transformed_df["accident_severity"] = y
 
-            logger.info(f"Data preprocessing completed")
+            logger.info("Data preprocessing completed")
 
         except Exception as e:
             raise e
@@ -145,20 +139,25 @@ class DataTransformation:
         train_resampled.to_csv(os.path.join(self.config.root_dir, "train_resampled.csv"), index=False)
 
         logger.info("Handling data imbalance using SMOTE completed")
-        
-    
+
+    def save_preprocessor(self):
+        if self.preprocessor is not None:
+            joblib.dump(self.preprocessor, self.config.preprocessor_path)
+            logger.info(f"Preprocessor saved to {self.config.preprocessor_path}")
+        else:
+            logger.warning("Preprocessor is not available. Please call get_data_transformation to create it.")
+
     def train_test_split(self):
         if self.preprocessor is None:
-            raise ValueError(f"Preprocessor is not available. Please call get_data_transformation")
-        
+            raise ValueError("Preprocessor is not available. Please call get_data_transformation.")
+
         # Split the data into train and test sets
         train, test = train_test_split(self.transformed_df)
 
-
-        # Save the encoded train and test sets in form of csv files
+        # Save the encoded train and test sets in the form of CSV files
         train.to_csv(os.path.join(self.config.root_dir, "train.csv"), index=False)
         test.to_csv(os.path.join(self.config.root_dir, "test.csv"), index=False)
 
-        logger.info(f"Spitted the data into train and test set")
-        logger.info(f"Shape of train data: ", train.shape)
-        logger.info(f"Shape of test data: ", test.shape)
+        logger.info("Split the data into train and test sets.")
+        logger.info(f"Shape of train data: {train.shape}")
+        logger.info(f"Shape of test data: {test.shape}")
